@@ -1,0 +1,3 @@
+[build]
+  command = "VITE_MODE=netlify npm run build"
+  publish = "dist"
