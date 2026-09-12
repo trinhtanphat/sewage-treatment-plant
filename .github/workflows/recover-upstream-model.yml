@@ -1,0 +1,69 @@
+name: Recover upstream sewage model
+
+on:
+  push:
+    branches: [chore/model-release-assets]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Try author-hosted model URLs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -u
+          mkdir -p recovered
+          urls=(
+            "http://211.143.122.110:18062/model/sewage.glb"
+            "https://211.143.122.110:18062/model/sewage.glb"
+            "http://211.143.122.110:18062/model/sewageModel.glb"
+            "http://211.143.122.110:18062/sewage.glb"
+            "http://211.143.122.110:18062/sewageModel.glb"
+          )
+
+          found_url=""
+          for url in "${urls[@]}"; do
+            echo "Trying ${url}"
+            rm -f recovered/candidate.glb
+            if curl --fail --location --retry 1 --retry-delay 2 \
+              --connect-timeout 20 --max-time 180 \
+              -A "Mozilla/5.0" \
+              -o recovered/candidate.glb "${url}"; then
+              size=$(stat -c '%s' recovered/candidate.glb)
+              magic=$(head -c 4 recovered/candidate.glb | od -An -t x1 | tr -d ' \n')
+              echo "Downloaded ${size} bytes; magic=${magic}"
+              if [[ "${magic}" == "676c5446" && "${size}" -gt 1048576 ]]; then
+                mv recovered/candidate.glb recovered/sewageModel.glb
+                found_url="${url}"
+                break
+              fi
+            fi
+          done
+
+          if [[ -z "${found_url}" ]]; then
+            echo "No valid binary glTF model was reachable from the author-hosted URL variants."
+            exit 2
+          fi
+
+          echo "Recovered from: ${found_url}"
+          sha256sum recovered/sewageModel.glb
+          gh release upload model-assets recovered/sewageModel.glb \
+            --repo "${GITHUB_REPOSITORY}" --clobber
+
+      - name: Preserve recovered model artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sewageModel-recovered
+          path: recovered/sewageModel.glb
+          if-no-files-found: error
