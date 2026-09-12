@@ -11,12 +11,12 @@ permissions:
 jobs:
   recover:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Try author-hosted model URLs
+      - name: Probe and recover author-hosted model
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -33,17 +33,16 @@ jobs:
 
           found_url=""
           for url in "${urls[@]}"; do
-            echo "Trying ${url}"
-            rm -f recovered/candidate.glb
-            if curl --fail --location --retry 1 --retry-delay 2 \
-              --connect-timeout 20 --max-time 180 \
+            echo "Probing ${url}"
+            rm -f recovered/probe.bin
+            if curl --fail --location \
+              --connect-timeout 12 --max-time 25 \
+              -H "Range: bytes=0-3" \
               -A "Mozilla/5.0" \
-              -o recovered/candidate.glb "${url}"; then
-              size=$(stat -c '%s' recovered/candidate.glb)
-              magic=$(head -c 4 recovered/candidate.glb | od -An -t x1 | tr -d ' \n')
-              echo "Downloaded ${size} bytes; magic=${magic}"
-              if [[ "${magic}" == "676c5446" && "${size}" -gt 1048576 ]]; then
-                mv recovered/candidate.glb recovered/sewageModel.glb
+              -o recovered/probe.bin "${url}"; then
+              magic=$(head -c 4 recovered/probe.bin | od -An -t x1 | tr -d ' \n')
+              echo "Probe magic=${magic}"
+              if [[ "${magic}" == "676c5446" ]]; then
                 found_url="${url}"
                 break
               fi
@@ -51,12 +50,23 @@ jobs:
           done
 
           if [[ -z "${found_url}" ]]; then
-            echo "No valid binary glTF model was reachable from the author-hosted URL variants."
+            echo "No author-hosted URL returned binary glTF magic."
             exit 2
           fi
 
-          echo "Recovered from: ${found_url}"
+          echo "Valid GLB endpoint found: ${found_url}"
+          curl --fail --location --retry 3 --retry-delay 3 \
+            --connect-timeout 20 --max-time 900 \
+            -A "Mozilla/5.0" \
+            -o recovered/sewageModel.glb "${found_url}"
+
+          size=$(stat -c '%s' recovered/sewageModel.glb)
+          magic=$(head -c 4 recovered/sewageModel.glb | od -An -t x1 | tr -d ' \n')
+          echo "Full download size=${size}; magic=${magic}"
+          [[ "${magic}" == "676c5446" ]]
+          [[ "${size}" -gt 1048576 ]]
           sha256sum recovered/sewageModel.glb
+
           gh release upload model-assets recovered/sewageModel.glb \
             --repo "${GITHUB_REPOSITORY}" --clobber
 
