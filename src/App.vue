@@ -1,46 +1,33 @@
 <script setup>
-import zhCN from "ant-design-vue/es/locale/zh_CN";
-import dayjs from "dayjs";
-import "dayjs/locale/zh-cn";
-dayjs.locale("en");
+import { computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import enUS from 'ant-design-vue/es/locale/en_US';
+import viVN from 'ant-design-vue/es/locale/vi_VN';
+import zhCN from 'ant-design-vue/es/locale/zh_CN';
+import dayjs from 'dayjs';
+import 'dayjs/locale/en';
+import 'dayjs/locale/vi';
+import 'dayjs/locale/zh-cn';
+
+const { locale } = useI18n();
+const antLocale = computed(() => ({ vi: viVN, en: enUS, 'zh-CN': zhCN }[locale.value] ?? viVN));
+
+watch(locale, (value) => {
+  dayjs.locale(value === 'zh-CN' ? 'zh-cn' : value);
+}, { immediate: true });
 </script>
 
 <template>
-  <!-- ant-design组件 -->
   <a-config-provider
-    :locale="zhCN"
+    :locale="antLocale"
     :theme="{
       token: {
-        // 主题风格颜色
         colorPrimary: '#00688B',
-        // 背景颜色
         colorBgBase: '#04405D',
-        // 文本颜色
         colorTextBase: '#fafafa',
-        // 边框颜色
         colorBorder: '#00688B',
       },
     }"
-  >
-    <router-view class="element"></router-view>
+  >    <router-view class="element"></router-view>
   </a-config-provider>
 </template>
-
-<style scoped>
-/* 默认情况下，不进行缩放 */
-/* .element {
-  transform: scale(1);
-} */
-
-/* @media (max-width: 1200px) {
-  .element {
-    transform: scale(0.8);
-  }
-}
-
-@media (min-width: 2000px) {
-  .element {
-    transform: scale(1.2);
-  }
-} */
-</style>

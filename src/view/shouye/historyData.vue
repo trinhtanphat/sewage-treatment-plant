@@ -13,7 +13,7 @@
           />
         </div>
         <div class="header_menu">
-          <a-button type="primary"><SearchOutlined />查询</a-button>
+          <a-button type="primary"><SearchOutlined />{{ $t('common.query') }}</a-button>
         </div>
       </div>
       <div class="chartRegion">
@@ -35,7 +35,7 @@
               :index="index"
               @click="sewageIndexChange(obj)"
             >
-              {{ obj.name }}
+              {{ obj.labelKey ? $t(obj.labelKey) : obj.name }}
             </div>
           </div>
         </div>
@@ -56,6 +56,8 @@ import moment from "moment";
 import * as echarts from "echarts";
 import dayjs from "dayjs";
 import { SearchOutlined } from "@ant-design/icons-vue";
+import { useI18n } from "vue-i18n";
+const { t } = useI18n();
 
 // 首页传值
 const props = defineProps(["visible"]);
@@ -69,7 +71,7 @@ let queryDate = ref([dayjs().subtract(7, "day"), dayjs()]);
 const sewageArr = reactive([
   { name: "COD", state: true },
   { name: "SS", state: false },
-  { name: "氨氮", state: false },
+  { name: "氨氮", labelKey: "common.ammonia", state: false },
   { name: "TP", state: false },
   { name: "TN", state: false },
   { name: "pH", state: false },
@@ -117,7 +119,7 @@ function initEcahrt() {
     const chart1 = echarts.init(document.getElementById("topChart1"));
     const options1 = {
       title: {
-        text: "电耗趋势",
+        text: t("history.energy"),
         x: "center",
         y: "top",
         textStyle: {
@@ -137,7 +139,7 @@ function initEcahrt() {
         axisLabel: {
           interval: 2,
           formatter: (e) => {
-            return `${moment(e).month() + 1}月${moment(e).date()}日`;
+            return moment(e).format("MM-DD");
           },
         },
       },
@@ -167,9 +169,7 @@ function initEcahrt() {
           "background: linear-gradient(270deg, #1D4A63 0%, #0F244D 100%);border:0px;color:#BBFFFF;",
         formatter: (e) => {
           const dataTime = moment(e[0].data[0]);
-          const date = `${dataTime.year()}年${
-            dataTime.month() + 1
-          }月${dataTime.date()}日`;
+          const date = dataTime.format("YYYY-MM-DD");
           const marker = e[0].marker;
           const data = e[0].data[1];
           return `${marker}${date}：${data}`;
@@ -210,7 +210,7 @@ function initEcahrt() {
     const chart2 = echarts.init(document.getElementById("topChart2"));
     const options2 = {
       title: {
-        text: "药耗趋势",
+        text: t("history.chemical"),
         textAlign: "left",
         x: "center",
         y: "top",
@@ -231,7 +231,7 @@ function initEcahrt() {
         axisLabel: {
           interval: 2,
           formatter: (e) => {
-            return `${moment(e).month() + 1}月${moment(e).date()}日`;
+            return moment(e).format("MM-DD");
           },
         },
       },
@@ -261,9 +261,7 @@ function initEcahrt() {
           "background: linear-gradient(270deg, #1D4A63 0%, #0F244D 100%);border:0px;color:#BBFFFF;",
         formatter: (e) => {
           const dataTime = moment(e[0].data[0]);
-          const date = `${dataTime.year()}年${
-            dataTime.month() + 1
-          }月${dataTime.date()}日`;
+          const date = dataTime.format("YYYY-MM-DD");
           const marker = e[0].marker;
           const data = e[0].data[1];
           return `${marker}${date}：${data}`;
@@ -304,7 +302,7 @@ function initEcahrt() {
     const chart3 = echarts.init(document.getElementById("topChart3"));
     const options3 = {
       title: {
-        text: "产泥趋势",
+        text: t("history.sludge"),
         textAlign: "left",
         x: "center",
         y: "top",
@@ -323,7 +321,7 @@ function initEcahrt() {
         },
         axisLabel: {
           formatter: (e) => {
-            return `${moment(e).month() + 1}月${moment(e).date()}日`;
+            return moment(e).format("MM-DD");
           },
         },
       },
@@ -353,9 +351,7 @@ function initEcahrt() {
           "background: linear-gradient(270deg, #1D4A63 0%, #0F244D 100%);border:0px;color:#BBFFFF;",
         formatter: (e) => {
           const dataTime = moment(e[0].data[0]);
-          const date = `${dataTime.year()}年${
-            dataTime.month() + 1
-          }月${dataTime.date()}日`;
+          const date = dataTime.format("YYYY-MM-DD");
           const marker = e[0].marker;
           const data = e[0].data[1];
           return `${marker}${date}：${data}`;
@@ -399,7 +395,7 @@ function initEcahrt() {
     let rightChart = echarts.init(document.getElementById("rightEchart"));
     const rightOptions = {
       title: {
-        text: "进出水量趋势",
+        text: t("history.flow"),
         textAlign: "left",
         x: "center",
         y: "5%",
@@ -464,7 +460,7 @@ function initEcahrt() {
           },
           axisLabel: {
             formatter: (e) => {
-              return `${moment(e).month() + 1}月${moment(e).date()}日`;
+              return moment(e).format("MM-DD");
             },
           },
         },
@@ -486,7 +482,7 @@ function initEcahrt() {
       ],
       series: [
         {
-          name: "进水量",
+          name: t("history.inflow"),
           type: "bar",
           data: [22.0, 42.9, 37.0, 33.2, 25.6, 76.7, 35.6],
           barWidth: "30%",
@@ -506,7 +502,7 @@ function initEcahrt() {
           },
         },
         {
-          name: "出水量",
+          name: t("history.outflow"),
           type: "bar",
           data: [32.6, 51.9, 29.0, 26.4, 28.7, 40.7, 75.6],
           barWidth: "30%",
@@ -724,13 +720,13 @@ function setLeftEchart(factor) {
     },
     series: [
       {
-        name: "出水口COD",
+        name: t("dashboard.outletCOD"),
         data: factorDataObj[factor]["outWater"],
         type: "line",
         color: "#04CDF0",
       },
       {
-        name: "进水口COD",
+        name: t("dashboard.inletCOD"),
         data: factorDataObj[factor]["enterWater"],
         type: "line",
         color: "#1B8CDC",

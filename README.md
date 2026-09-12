@@ -49,3 +49,27 @@ npm run build
 ## 资源说明
 
 项目包含较大的三维模型和 HDR 环境贴图资源。`public/sewageModel.glb` 超过 GitHub 普通仓库 100MB 单文件限制，未纳入普通 Git 提交。需要完整运行三维场景时，请将该文件放回 `public/sewageModel.glb`，或启用 Git LFS 后再提交。
+
+## Fork 增强 / Fork enhancements
+
+此 fork 增加了界面国际化，支持 **Tiếng Việt / English / 中文**，默认使用越南语，并将用户选择保存在浏览器 `localStorage` 中。Ant Design Vue、Day.js、ECharts 标题、工艺辅助面板与巡检数据均跟随所选语言。
+
+This fork adds a **Vietnamese / English / Chinese** UI, with Vietnamese as the default. The selected locale is persisted in `localStorage`, while internal Three.js model/object names remain unchanged to preserve scene behavior.
+
+CI 使用 GitHub Actions + Node.js 22，执行：
+
+```bash
+npm ci --no-audit --no-fund
+npm test
+npm run build
+```
+
+## Upstream 与许可说明
+
+本仓库 fork 自 `cfy1126/sewage-treatment-plant`，并保留 upstream 关系，便于后续同步原项目更新。
+
+截至本 fork 创建时，upstream 仓库未提供明确的 `LICENSE` 文件。本 fork 不擅自添加或变更原项目许可；如用于商业分发或二次授权，请先向原作者确认许可范围。
+
+## 3D 模型资源
+
+`public/sewageModel.glb` 大于 GitHub 普通 Git 单文件限制，因此 upstream 未提交该文件。CI 可以构建静态站点，但完整 3D 场景仍需要在部署环境提供该模型文件，或改用 Git LFS / 对象存储托管该资源。

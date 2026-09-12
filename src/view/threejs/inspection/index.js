@@ -1,6 +1,7 @@
 // 引入threejs
 import * as THREE from "three";
 import { ref, onMounted, watch, reactive } from "vue";
+import i18n from "../../../i18n/index.js";
 import { WalkAction } from '../addPeopleModel/index.js';
 // import CSG from 'three-csg';
 import { CSG } from 'three-csg-ts';
@@ -74,58 +75,62 @@ const inspectionPathDataObj = {
 const inspectionParams = {
     '鼓风机房': {
         speed: 0.1,
-        describe: '鼓风机房是用于存放鼓风机的建筑物。鼓风机用来给生化好氧菌提供氧气，即曝气过程。变配电间是电力网中的线路连接点，是用以变换电压、交换功率和汇集、分配电能的设施。它是电网的重要组成部分和电能传输的重要环节，对保证电网安全、经济运行具有举足轻重的作用。',
+        labelKey: 'inspection.blowerRoom',
+        describeKey: 'inspection.blowerDesc',
         data: [
-            ['1#鼓风机频率反馈', '0.0282HZ'],
-            ['2#鼓风机频率反馈', '0.0000HZ'],
-            ['3#鼓风机频率反馈', '44.0234HZ'],
-            ['出风管流量计：瞬时流量', '1500.4323m³/h'],
-            ['出风管流量计：累计流量', '21687432m³/h'],
-            ['鼓风机房总管压力', '0.0848MPa'],
+            ['inspection.blower1Feedback', '0.0282HZ'],
+            ['inspection.blower2Feedback', '0.0000HZ'],
+            ['inspection.blower3Feedback', '44.0234HZ'],
+            ['inspection.outletAirInstantFlow', '1500.4323m³/h'],
+            ['inspection.outletAirCumulativeFlow', '21687432m³/h'],
+            ['inspection.blowerHeaderPressure', '0.0848MPa'],
         ]
     },
     '二沉池': {
         speed: 0.05,
-        describe: '污水经过水解酸化池及AAO生化池后进去二沉池，二沉池的作用是泥水分离，使混合渣澄清、活性污泥浓缩并将分离的小部分污泥送去污泥脱水工段，大部分污泥通过污泥回流泵泵送回曝气池，用于调节生物池污泥浓度，保持生化池稳定运行。',
+        labelKey: 'inspection.secondaryClarifier',
+        describeKey: 'inspection.secondaryDesc',
         data: [
-            ['污泥回流泵池液位', '5.3847m']
+            ['inspection.sludgeReturnPoolLevel', '5.3847m']
         ]
     },
     '粗格栅': {
         speed: 0.05,
-        describe: '粗格栅将污水中较大漂浮物和悬浮物截留，减少后续处理产生的浮渣，防止堵塞污水处理设施，保证后续流程正常运行。经过粗格栅过滤的水在进水泵中再一次提升高度，便于其流入细格栅及沉沙池中。',
+        labelKey: 'inspection.coarseScreen',
+        describeKey: 'inspection.coarseDesc',
         data: [
-            ['进水COD', '59.8597mg/L'],
-            ['进水氨氮', '13.4187/L'],
-            ['进水总磷', '0.0000mg/L'],
-            ['进水总氮', '0.0000mg/L'],
-            ['进水pH', '7.1028'],
-            ['进水瞬时流量', '234.5378/h'],
-            ['进水累计流量', '3006253m³/h'],
-            ['出水COD', '59.8597mg/L'],
-            ['出水氨氮', '13.4187/L'],
-            ['出水总磷', '0.0000mg/L'],
-            ['出水总氮', '0.0000mg/L'],
-            ['出水pH', '7.1028'],
-            ['出水瞬时流量', '234.5378/h'],
-            ['出水累计流量', '3006253m³/h'],
+            ['inspection.influentCOD', '59.8597mg/L'],
+            ['inspection.influentAmmonia', '13.4187/L'],
+            ['inspection.influentTP', '0.0000mg/L'],
+            ['inspection.influentTN', '0.0000mg/L'],
+            ['inspection.influentPh', '7.1028'],
+            ['inspection.influentInstantFlow', '234.5378/h'],
+            ['inspection.influentCumulativeFlow', '3006253m³/h'],
+            ['inspection.effluentCOD', '59.8597mg/L'],
+            ['inspection.effluentAmmonia', '13.4187/L'],
+            ['inspection.effluentTP', '0.0000mg/L'],
+            ['inspection.effluentTN', '0.0000mg/L'],
+            ['inspection.effluentPh', '7.1028'],
+            ['inspection.effluentInstantFlow', '234.5378/h'],
+            ['inspection.effluentCumulativeFlow', '3006253m³/h'],
         ]
     },
     '曝气池': {
         speed: 0.2,
-        describe: '污水通过曝气氧化池进入昭气生物源池，曝气生物滤池最高液位5.9米，有效溶剂3200立方米实现生物降解有机物，硝化、反硝化及截留悬浮物于一体，进一步去除污水中的COD、氨氮及悬浮物后流入下一处理单元--转盘滤池',
+        labelKey: 'inspection.aerationTank',
+        describeKey: 'inspection.aerationDesc',
         data: [
-            ['硝化液回流流量', '0.362m3/h'],
-            ['硝化与反硝化：反冲洗风管压力', '0.1362m3/h'],
-            ['硝化与反硝化：DC滤池5#DO', '2.2362m3/h'],
-            ['硝化与反硝化：DC滤池6#DO', '5.3465m3/h'],
-            ['硝化与反硝化：反冲洗管流量', '0.3765m3/h'],
-            ['硝化与反硝化：反冲洗风管流量', '0.4522m3/h'],
-            ['硝化与反硝化：DC滤池1#DO', '2.2472m3/h'],
-            ['硝化与反硝化：DC滤池2#DO', '6.2735m3/h'],
-            ['硝化与反硝化：DC滤池3#DO', '3.5323m3/h'],
-            ['硝化与反硝化：DC滤池4#DO', '7.5932m3/h'],
-            ['硝化与反硝化：DC滤池7#DO', '3.1348m3/h'],
+            ['inspection.nitrificationRecycleFlow', '0.362m3/h'],
+            ['inspection.backwashAirPressure', '0.1362m3/h'],
+            ['inspection.dcFilter5DO', '2.2362m3/h'],
+            ['inspection.dcFilter6DO', '5.3465m3/h'],
+            ['inspection.backwashWaterFlow', '0.3765m3/h'],
+            ['inspection.backwashAirFlow', '0.4522m3/h'],
+            ['inspection.dcFilter1DO', '2.2472m3/h'],
+            ['inspection.dcFilter2DO', '6.2735m3/h'],
+            ['inspection.dcFilter3DO', '3.5323m3/h'],
+            ['inspection.dcFilter4DO', '7.5932m3/h'],
+            ['inspection.dcFilter7DO', '3.1348m3/h'],
         ]
     }
 };
@@ -178,7 +183,8 @@ for (let item in inspectionPathDataObj) {
     const curvePath = new THREE.CurvePath();
     curvePath.name = item;
     curvePath.speed = inspectionParams[item].speed;
-    curvePath.describe = inspectionParams[item].describe;
+    curvePath.labelKey = inspectionParams[item].labelKey;
+    curvePath.describeKey = inspectionParams[item].describeKey;
     curvePath.data = inspectionParams[item].data;
     const currentPathArr = inspectionPathDataObj[item];
     // 创建一个组对象，存储当前巡检项目的标线和拐点
@@ -269,15 +275,15 @@ function openInspection (people, controls) {
             // 停止人物模型步行动画播放
             WalkAction.stop();
             // 巡检数据面板标题更新
-            document.getElementById('panelTitle').innerHTML = currentPath.name;
+            document.getElementById('panelTitle').innerHTML = i18n.global.t(currentPath.labelKey);
             // 巡检数据面板描述内容更新
-            document.getElementById('describe').innerHTML = currentPath.describe;
+            document.getElementById('describe').innerHTML = i18n.global.t(currentPath.describeKey);
             // 巡检数据面板数据更新
             let panelDataStr = '';
             currentPath.data.map(item => {
                 panelDataStr += `
                         <div class="row">
-                            <div>${item[0]}</div>
+                            <div>${i18n.global.t(item[0])}</div>
                             <div>${item[1]}</div>
                         </div>
                     `
