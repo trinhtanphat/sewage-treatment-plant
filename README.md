@@ -72,4 +72,13 @@ npm run build
 
 ## 3D 模型资源
 
-`public/sewageModel.glb` 大于 GitHub 普通 Git 单文件限制，因此 upstream 未提交该文件。CI 可以构建静态站点，但完整 3D 场景仍需要在部署环境提供该模型文件，或改用 Git LFS / 对象存储托管该资源。
+`public/sewageModel.glb` 大于 GitHub 普通 Git 单文件限制，因此 upstream 未提交该文件。此 fork 使用 GitHub Release `model-assets` 作为大模型资源通道；Pages workflow 会在 release 中存在名为 `sewageModel.glb` 的 asset 时自动下载到 `public/`、校验二进制 glTF magic `glTF`，然后构建部署。
+
+Upstream source 在 `src/view/threejs/addSewageModel/index.js` 中保留了作者原始地址 `http://211.143.122.110:18062/model/sewage.glb`。2026-09-12 已分别从本地 Windows 与 GitHub Actions Ubuntu runner 进行 HTTP/HTTPS、Range 及多个路径变体探测；目标 `211.143.122.110:18062` 均在 TCP connect 阶段超时，因此当前无法从该链接恢复模型字节。
+
+若获得合法的原始模型，可上传并重新部署：
+
+```bash
+gh release upload model-assets sewageModel.glb --clobber --repo trinhtanphat/sewage-treatment-plant
+gh workflow run pages.yml --repo trinhtanphat/sewage-treatment-plant
+```

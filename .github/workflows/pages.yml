@@ -21,6 +21,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Restore optional 3D model release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          mkdir -p public
+          if gh release view model-assets --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            if gh release download model-assets --repo "$GITHUB_REPOSITORY" --pattern sewageModel.glb --dir public --clobber; then
+              python - <<'PY'
+          from pathlib import Path
+          p = Path('public/sewageModel.glb')
+          with p.open('rb') as f:
+              magic = f.read(4)
+          if magic != b'glTF':
+              raise SystemExit('sewageModel.glb is not a binary glTF (GLB) file')
+          print(f'Validated sewageModel.glb: {p.stat().st_size} bytes')
+          PY
+            else
+              echo "::notice::model-assets release exists but sewageModel.glb is not uploaded yet."
+            fi
+          else
+            echo "::notice::model-assets release does not exist yet; deploying without the optional GLB."
+          fi
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
