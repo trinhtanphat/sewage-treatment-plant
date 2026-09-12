@@ -48,7 +48,7 @@ npm run build
 
 ## 资源说明
 
-项目包含较大的三维模型和 HDR 环境贴图资源。`public/sewageModel.glb` 超过 GitHub 普通仓库 100MB 单文件限制，未纳入普通 Git 提交。需要完整运行三维场景时，请将该文件放回 `public/sewageModel.glb`，或启用 Git LFS 后再提交。
+项目包含较大的三维模型和 HDR 环境贴图资源。`public/sewageModel.glb` 超过 GitHub 普通仓库 100MB 单文件限制，upstream 未将该模型纳入普通 Git 提交。
 
 ## Fork 增强 / Fork enhancements
 
@@ -72,4 +72,13 @@ npm run build
 
 ## 3D 模型资源
 
-`public/sewageModel.glb` 大于 GitHub 普通 Git 单文件限制，因此 upstream 未提交该文件。CI 可以构建静态站点，但完整 3D 场景仍需要在部署环境提供该模型文件，或改用 Git LFS / 对象存储托管该资源。
+大型运行时模型使用本 fork 的 GitHub Release `model-assets` 托管，而不是普通 Git 或 fork Git LFS。Pages workflow 会在每次部署时尝试下载名为 `sewageModel.glb` 的 release asset 到 `public/`，验证 GLB magic `glTF` 后再执行 Vite build；若 asset 尚不存在，站点仍会部署 UI，但完整 3D 场景不可用。
+
+当取得合法的原始模型文件后，可上传并重新部署：
+
+```bash
+gh release upload model-assets /path/to/sewageModel.glb --repo trinhtanphat/sewage-treatment-plant --clobber
+gh workflow run pages.yml --repo trinhtanphat/sewage-treatment-plant
+```
+
+Release: `https://github.com/trinhtanphat/sewage-treatment-plant/releases/tag/model-assets`
