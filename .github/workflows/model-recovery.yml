@@ -1,0 +1,118 @@
+name: Recover upstream 3D model
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+  pull_request:
+    paths:
+      - '.github/workflows/model-recovery.yml'
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Probe public upstream model endpoints
+        id: probe
+        shell: bash
+        run: |
+          set -u
+          mkdir -p recovery
+          candidates=(
+            'http://211.143.122.110:18062/sewage/sewageModel.glb'
+            'http://211.143.122.110:18062/sewage/model/sewage.glb'
+            'http://211.143.122.110:18062/model/sewage.glb'
+            'https://sewage-treatment-plant.netlify.app/sewageModel.glb'
+            'https://sewage-treatment-plant.netlify.app/model/sewage.glb'
+          )
+          found=''
+          for url in "${candidates[@]}"; do
+            echo "::group::Probe ${url}"
+            rm -f recovery/probe.bin recovery/sewageModel.glb
+            curl --location --silent --show-error \
+              --user-agent 'Mozilla/5.0 (compatible; sewage-model-recovery/1.0)' \
+              --connect-timeout 8 --max-time 20 --range 0-11 \
+              "$url" -o recovery/probe.bin || true
+            if python - recovery/probe.bin <<'PY'
+          import struct, sys
+          from pathlib import Path
+          p = Path(sys.argv[1])
+          if not p.exists() or p.stat().st_size < 12:
+              raise SystemExit(1)
+          h = p.read_bytes()[:12]
+          magic, version, declared = h[:4], *struct.unpack('<II', h[4:12])
+          print(f'magic={magic!r} version={version} declared={declared}')
+          raise SystemExit(0 if magic == b'glTF' and version == 2 and declared > 100_000_000 else 1)
+          PY
+            then
+              echo "GLB header candidate found at ${url}; downloading full asset"
+              if curl --fail --location --silent --show-error --retry 2 --retry-delay 2 \
+                --user-agent 'Mozilla/5.0 (compatible; sewage-model-recovery/1.0)' \
+                --connect-timeout 10 --max-time 900 \
+                "$url" -o recovery/sewageModel.glb; then
+                if python - recovery/sewageModel.glb <<'PY'
+          import struct, sys
+          from pathlib import Path
+          p = Path(sys.argv[1])
+          size = p.stat().st_size
+          h = p.read_bytes()[:12]
+          if len(h) != 12:
+              raise SystemExit('short GLB header')
+          magic = h[:4]
+          version, declared = struct.unpack('<II', h[4:12])
+          if magic != b'glTF' or version != 2 or declared != size or size <= 100_000_000:
+              raise SystemExit(f'invalid GLB: magic={magic!r} version={version} declared={declared} actual={size}')
+          print(f'validated GLB: {size} bytes')
+          PY
+                then
+                  found="$url"
+                  sha256sum recovery/sewageModel.glb > recovery/sewageModel.glb.sha256
+                  echo "found=true" >> "$GITHUB_OUTPUT"
+                  echo "source_url=$url" >> "$GITHUB_OUTPUT"
+                  echo "::notice::Recovered valid sewageModel.glb from ${url}"
+                  echo "::endgroup::"
+                  break
+                fi
+              fi
+            fi
+            echo "No valid >100 MB GLB at ${url}"
+            echo "::endgroup::"
+          done
+          if [ -z "$found" ]; then
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No recoverable upstream sewageModel.glb is online right now."
+          fi
+
+      - name: Upload recovered model to release
+        if: steps.probe.outputs.found == 'true' && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view model-assets --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create model-assets --repo "$GITHUB_REPOSITORY" --title '3D model assets' --notes 'Large runtime assets kept outside normal Git history.'
+          gh release upload model-assets \
+            recovery/sewageModel.glb recovery/sewageModel.glb.sha256 \
+            --repo "$GITHUB_REPOSITORY" --clobber
+
+      - name: Redeploy GitHub Pages with recovered model
+        if: steps.probe.outputs.found == 'true' && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
+
+      - name: Recovery summary
+        if: always()
+        run: |
+          echo '### Upstream model recovery' >> "$GITHUB_STEP_SUMMARY"
+          echo "Recovered: ${{ steps.probe.outputs.found || 'false' }}" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.probe.outputs.found }}" = 'true' ]; then
+            echo "Source: ${{ steps.probe.outputs.source_url }}" >> "$GITHUB_STEP_SUMMARY"
+          fi
