@@ -2,8 +2,6 @@ name: Recover upstream 3D model
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '17 */6 * * *'
   pull_request:
     paths:
       - '.github/workflows/model-recovery.yml'
