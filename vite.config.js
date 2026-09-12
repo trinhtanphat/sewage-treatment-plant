@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     // 公共路径配置，适合打包后的相对路径
-    base: env.VITE_MODE === 'production' ? '/sewage/' : '/', // Vite 中使用 'base' 而不是 'publicPath'
+    base: './', // Vite 中使用 'base' 而不是 'publicPath'
     resolve: {
       // 配置路径别名
       alias: {

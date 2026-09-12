@@ -9,7 +9,7 @@
         style="width: 100%; height: 100%; vertical-align: baseline"
       />
     </div>
-    <div class="inspectText">巡检进度</div>
+    <div class="inspectText">{{ $t('common.inspectionProgress') }}</div>
   </div>
 </template>
 <script setup>

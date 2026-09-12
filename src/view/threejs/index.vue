@@ -17,15 +17,15 @@
     <Label></Label>
     <!-- 巡检数据展示面板-->
     <div class="inspectPanel a-fadein" v-show="inspectPanelShow">
-      <div class="panelTitle" id="panelTitle">曝气池</div>
+      <div class="panelTitle" id="panelTitle">{{ $t('inspection.aerationTank') }}</div>
       <div class="panelData">
         <div class="left">
-          <div class="leftTitle">介绍</div>
+          <div class="leftTitle">{{ $t('common.intro') }}</div>
           <div class="segment"></div>
           <div class="describe" id="describe"></div>
         </div>
         <div class="right">
-          <div class="rightTitle">数据记录</div>
+          <div class="rightTitle">{{ $t('common.dataRecord') }}</div>
           <div class="segment"></div>
           <div class="record">
             <div class="main" id="panelData"></div>
@@ -37,11 +37,11 @@
     <div class="inspect" v-show="props['selectedMenu'] === 'inspect'">
       <div class="common" @click="endInspect">
         <div class="return_icon" style=""></div>
-        返回
+        {{ $t('common.back') }}
       </div>
       <div class="common" @click="inspectStateChange">
         <div :class="inspectState ? 'stop_icon' : 'continue_icon'"></div>
-        {{ inspectState ? "暂停" : "继续" }}
+        {{ inspectState ? $t('common.pause') : $t('common.continue') }}
       </div>
     </div>
     <!-- 巡检进度条 -->

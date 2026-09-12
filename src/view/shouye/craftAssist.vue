@@ -6,21 +6,21 @@
       @click="menuChange('aeration')"
     >
       <img src="../../assets/shouye/aeration.png" style="margin-right: 3px" />
-      精确曝气
+      {{ $t('craft.aeration') }}
     </div>
     <div
       :class="selectedCraft === 'dosing' ? 'selected but' : 'but'"
       @click="menuChange('dosing')"
     >
       <img src="../../assets/shouye/dosing.png" style="margin-right: 3px" />
-      精确加药
+      {{ $t('craft.dosing') }}
     </div>
     <div
       :class="selectedCraft === 'sludge' ? 'selected but' : 'but'"
       @click="menuChange('sludge')"
     >
       <img src="../../assets/shouye/sludge.png" style="margin-right: 3px" />
-      污泥回流
+      {{ $t('craft.sludge') }}
     </div>
   </div>
   <!-- 工艺数据面板 -->
@@ -31,18 +31,18 @@
     <div class="panelTitle">
       {{
         selectedCraft === "aeration"
-          ? "精确曝气"
+          ? $t('craft.aeration')
           : selectedCraft === "dosing"
-          ? "精确加药"
-          : "污泥回流"
+          ? $t('craft.dosing')
+          : $t('craft.sludge')
       }}
     </div>
     <div class="panelMain">
       <div class="mainHeader">
         <div style="width: 5%"></div>
-        <div style="width: 30%">设备名称</div>
-        <div style="width: 35%">算法建议值</div>
-        <div style="width: 30%">实时值</div>
+        <div style="width: 30%">{{ $t('craft.equipmentName') }}</div>
+        <div style="width: 35%">{{ $t('craft.suggestion') }}</div>
+        <div style="width: 30%">{{ $t('craft.realtime') }}</div>
       </div>
       <div class="mainContent">
         <div
@@ -61,7 +61,7 @@
             />
           </div>
           <div class="row_common" style="width: 30%">
-            {{ item[0] }}
+            {{ $t(item[0]) }}
           </div>
           <div class="row_common" style="width: 35%">
             {{ item[1] }}
@@ -84,11 +84,11 @@
   <div class="estimate" v-show="estimateShow && visible">
     <div class="common">
       <div>0</div>
-      <div>模拟值</div>
+      <div>{{ $t('craft.simulated') }}</div>
     </div>
     <div class="common">
       <div>{{ actualValue }}</div>
-      <div>实际值</div>
+      <div>{{ $t('craft.actual') }}</div>
     </div>
   </div>
 </template>
@@ -127,23 +127,23 @@ watch(props, (e) => {
 watch(selectedCraft, (e) => {
   if (e === "aeration") {
     tableData.value = [
-      ["西侧曝气风机算法频率给定", "", 167],
-      ["给定流量（东2）", "", 472],
-      ["给定流量（东1）", "", 796],
-      ["东侧曝气风机算法频率给定", "", 304],
-      ["北侧曝气风机算法频率给定", "", 304],
-      ["南侧曝气风机算法频率给定", "", 304],
+      ["craftDevices.westAerationFanFrequency", "", 167],
+      ["craftDevices.east2FlowSetpoint", "", 472],
+      ["craftDevices.east1FlowSetpoint", "", 796],
+      ["craftDevices.eastAerationFanFrequency", "", 304],
+      ["craftDevices.northAerationFanFrequency", "", 304],
+      ["craftDevices.southAerationFanFrequency", "", 304],
     ];
   } else if (e === "dosing") {
     tableData.value = [
-      ["PAC给定流量", "", 9],
-      ["乙酸钠给定流量", "", 18],
-      ["葡萄糖给定流量", "", 41],
+      ["craftDevices.pacFlowSetpoint", "", 9],
+      ["craftDevices.sodiumAcetateFlowSetpoint", "", 18],
+      ["craftDevices.glucoseFlowSetpoint", "", 41],
     ];
   } else {
     tableData.value = [
-      ["给定至预缺氧池西侧需求流量", "", 148],
-      ["给定至预缺氧池东侧需求流量", "", 141],
+      ["craftDevices.westPreAnoxicDemandFlow", "", 148],
+      ["craftDevices.eastPreAnoxicDemandFlow", "", 141],
     ];
   }
   selectdDevice.value = tableData.value[0][0];
@@ -152,12 +152,12 @@ watch(selectedCraft, (e) => {
 
 function queryData() {
   tableData.value = [
-    ["西侧曝气风机算法频率给定", "", 167],
-    ["给定流量（东2）", "", 472],
-    ["给定流量（东1）", "", 796],
-    ["东侧曝气风机算法频率给定", "", 304],
-    ["北侧曝气风机算法频率给定", "", 304],
-    ["南侧曝气风机算法频率给定", "", 304],
+    ["craftDevices.westAerationFanFrequency", "", 167],
+    ["craftDevices.east2FlowSetpoint", "", 472],
+    ["craftDevices.east1FlowSetpoint", "", 796],
+    ["craftDevices.eastAerationFanFrequency", "", 304],
+    ["craftDevices.northAerationFanFrequency", "", 304],
+    ["craftDevices.southAerationFanFrequency", "", 304],
   ];
 }
 

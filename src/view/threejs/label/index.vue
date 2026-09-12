@@ -1,11 +1,11 @@
-!<template>
+<template>
   <!-- 人物标签 -->
   <div id="peopleLabel" style="display: none">
-    <div>巡检员: 小王</div>
+    <div>{{ $t('common.inspector') }}</div>
   </div>
   <!-- 建筑标签 -->
   <div id="buildLabel" style="display: none">
-    <div class="name">建筑标签</div>
+    <div class="name">{{ $t('common.buildingLabel') }}</div>
   </div>
 </template>
 
