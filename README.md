@@ -48,7 +48,7 @@ npm run build
 
 ## 资源说明
 
-项目包含较大的三维模型和 HDR 环境贴图资源。`public/sewageModel.glb` 超过 GitHub 普通仓库 100MB 单文件限制，upstream 未将该模型纳入普通 Git 提交。
+项目包含较大的三维模型和 HDR 环境贴图资源。`public/sewageModel.glb` 超过 GitHub 普通仓库 100MB 单文件限制，未纳入普通 Git 提交。需要完整运行三维场景时，请将该文件放回 `public/sewageModel.glb`，或启用 Git LFS 后再提交。
 
 ## Fork 增强 / Fork enhancements
 
@@ -72,13 +72,13 @@ npm run build
 
 ## 3D 模型资源
 
-大型运行时模型使用本 fork 的 GitHub Release `model-assets` 托管，而不是普通 Git 或 fork Git LFS。Pages workflow 会在每次部署时尝试下载名为 `sewageModel.glb` 的 release asset 到 `public/`，验证 GLB magic `glTF` 后再执行 Vite build；若 asset 尚不存在，站点仍会部署 UI，但完整 3D 场景不可用。
+`public/sewageModel.glb` 大于 GitHub 普通 Git 单文件限制，因此 upstream 未提交该文件。此 fork 使用 GitHub Release `model-assets` 作为大模型资源通道；Pages workflow 会在 release 中存在名为 `sewageModel.glb` 的 asset 时自动下载到 `public/`、校验二进制 glTF magic `glTF`，然后构建部署。
 
-当取得合法的原始模型文件后，可上传并重新部署：
+Upstream source 在 `src/view/threejs/addSewageModel/index.js` 中保留了作者原始地址 `http://211.143.122.110:18062/model/sewage.glb`。2026-09-12 已分别从本地 Windows 与 GitHub Actions Ubuntu runner 进行 HTTP/HTTPS、Range 及多个路径变体探测；目标 `211.143.122.110:18062` 均在 TCP connect 阶段超时，因此当前无法从该链接恢复模型字节。
+
+若获得合法的原始模型，可上传并重新部署：
 
 ```bash
-gh release upload model-assets /path/to/sewageModel.glb --repo trinhtanphat/sewage-treatment-plant --clobber
+gh release upload model-assets sewageModel.glb --clobber --repo trinhtanphat/sewage-treatment-plant
 gh workflow run pages.yml --repo trinhtanphat/sewage-treatment-plant
 ```
-
-Release: `https://github.com/trinhtanphat/sewage-treatment-plant/releases/tag/model-assets`
