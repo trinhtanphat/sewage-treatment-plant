@@ -9,6 +9,7 @@ import { addFence } from '../addFence/index.js';
 import { addPlant } from "../addPlant/index.js";
 import { detectModelCapabilities, supportsModelFeature } from "../modelCapabilities.js";
 import { inferGenericAxisScale } from "../modelNormalization.js";
+import { getModelLoadPercent } from "../modelProgress.js";
 
 
 
@@ -97,6 +98,9 @@ async function addSewageModel (envMap) {
             // 添加树模型
             if (supportsModelFeature(capabilities, 'plants')) await addPlant(gltf.scenes[0]);
 
+            // Only a successful GLTF load may report 100%.
+            progressDiv.style.width = '100%';
+            progressText.innerHTML = `项目正在初始化`;
 
             // 延迟几秒再隐藏进度条
             setTimeout(() => {
@@ -106,17 +110,14 @@ async function addSewageModel (envMap) {
             resolve(model);
         },
             (xhr) => {
-                // 模型加载百分比进度
-                const percent = ((xhr.loaded / xhr.total) * 100).toFixed(1);
-                // 设置加载进度(由于进度条动画存在一定延迟，所以在基础上加一点)
-                progressDiv.style.width = (percent - '') + 6 + '%';
-                if (percent === '100.0') {
-                    // 加载进度完成时告诉用户正在初始化项目
-                    progressText.innerHTML = `项目正在初始化`;
-                } else {
-                    // 告诉用户加载进度百分比
-                    progressText.innerHTML = `模型加载中${percent}%`;
+                const percent = getModelLoadPercent(xhr.loaded, xhr.total);
+                if (percent === null) {
+                    progressText.innerHTML = `模型加载中`;
+                    return;
                 }
+                const displayPercent = percent.toFixed(1);
+                progressDiv.style.width = `${Math.min(99.9, percent + 6)}%`;
+                progressText.innerHTML = `模型加载中${displayPercent}%`;
             })
     })
 }
