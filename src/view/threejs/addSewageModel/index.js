@@ -44,7 +44,7 @@ async function addSewageModel (envMap) {
     return new Promise(resolve => {
         // http://211.143.122.110:18062/model/sewage.glb
         // 加载污水厂模型
-        gltfLoader.load('./sewageModel.glb', (gltf) => {
+        gltfLoader.load('./sewageModel.glb', async (gltf) => {
             gltf.scene.traverse(function (obj) {
                 if (obj.name.includes('玻璃')) {
                     console.log(obj, 'obj')
@@ -87,7 +87,7 @@ async function addSewageModel (envMap) {
             // 添加围栏
             if (supportsModelFeature(capabilities, 'fence')) addFence(gltf.scenes[0]);
             // 添加树模型
-            if (supportsModelFeature(capabilities, 'plants')) addPlant(gltf.scenes[0]);
+            if (supportsModelFeature(capabilities, 'plants')) await addPlant(gltf.scenes[0]);
 
 
             // 延迟几秒再隐藏进度条
