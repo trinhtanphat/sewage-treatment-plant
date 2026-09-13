@@ -8,18 +8,26 @@ import { addFence } from '../addFence/index.js';
 // 添加树模型函数
 import { addPlant } from "../addPlant/index.js";
 import { detectModelCapabilities, supportsModelFeature } from "../modelCapabilities.js";
+import { inferGenericAxisScale } from "../modelNormalization.js";
 
 
 
 function fitGenericModel(root) {
-    const box = new THREE.Box3().setFromObject(root);
+    root.updateMatrixWorld(true);
+    let box = new THREE.Box3().setFromObject(root);
     if (box.isEmpty()) return;
-    const size = box.getSize(new THREE.Vector3());
+    let size = box.getSize(new THREE.Vector3());
+    let center = box.getCenter(new THREE.Vector3());
+    const axisScale = inferGenericAxisScale({ center, size });
+    root.scale.multiply(new THREE.Vector3(axisScale.x, axisScale.y, axisScale.z));
+    root.updateMatrixWorld(true);
+    box = new THREE.Box3().setFromObject(root);
+    size = box.getSize(new THREE.Vector3());
     const maxDimension = Math.max(size.x, size.y, size.z);
     if (maxDimension > 0) root.scale.multiplyScalar(160 / maxDimension);
     root.updateMatrixWorld(true);
     const fittedBox = new THREE.Box3().setFromObject(root);
-    const center = fittedBox.getCenter(new THREE.Vector3());
+    center = fittedBox.getCenter(new THREE.Vector3());
     root.position.x -= center.x;
     root.position.z -= center.z;
     root.position.y -= fittedBox.min.y;
