@@ -101,6 +101,7 @@ import speedControlBar from "./speedControlBar/index.vue";
 // 引入RGB加载器
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 import { setPoolMaterial } from "./poolMaterial/index";
+import { supportsModelFeature } from "./modelCapabilities.js";
 // 首页传值
 const props = defineProps([
   "craftAnimationStatus", // 工艺动画状态，为true时开启播放相应的工艺动画
@@ -114,6 +115,7 @@ const emit = defineEmits(["closeInspect", "craftAnimationEnd"]);
 const threejs = ref();
 // 污水厂模型
 let sewageModel = null;
+let modelCapabilities = null;
 // 人物模型
 let people = null;
 // 人物动画播放器
@@ -132,6 +134,7 @@ onMounted(async () => {
   createEnvironment(envMap);
   // 异步加载污水厂模型
   sewageModel = await addSewageModel(envMap);
+  modelCapabilities = sewageModel.userData.modelCapabilities;
   // 添加人物模型、人物动画播放器
   const { peopleGroup, mixer } = await addPeopleModel();
   people = peopleGroup;
@@ -142,9 +145,9 @@ onMounted(async () => {
   people.castShadow = true;
   scene.add(sewageModel, people, inspectLinePointGroup);
   // 创建水面
-  createWaterPlane(sewageModel, envMap);
+  if (supportsModelFeature(modelCapabilities, "water")) createWaterPlane(sewageModel, envMap);
   // 设置水池材质
-  setPoolMaterial(sewageModel);
+  if (supportsModelFeature(modelCapabilities, "poolMaterial")) setPoolMaterial(sewageModel);
   // 开始循环渲染
   render();
   // 播放首次进入动画
@@ -154,18 +157,24 @@ onMounted(async () => {
 watch(
   () => props["craftAnimationStatus"],
   (e) => {
-    if (e) {
+    if (e && supportsModelFeature(modelCapabilities, "craft")) {
       // 重置水面透明度
       waterPlaneGroup.children.map((obj) => {
         obj.material.uniforms.alpha.value = 1.0;
       });
       craftAnimation(props["craftAnimationType"]);
+    } else if (e) {
+      emit("craftAnimationEnd");
     }
   }
 );
 watch(
   () => props["selectedMenu"],
   (e) => {
+    if (e === "inspect" && !supportsModelFeature(modelCapabilities, "inspection")) {
+      emit("closeInspect");
+      return;
+    }
     // 巡检开启
     if (e === "inspect") {
       // 相机角度重置
@@ -261,7 +270,11 @@ function render() {
       );
     }
     // 巡检动画
-    if (props["selectedMenu"] === "inspect" && inspectState.value) {
+    if (
+      props["selectedMenu"] === "inspect" &&
+      inspectState.value &&
+      supportsModelFeature(modelCapabilities, "inspection")
+    ) {
       openInspection(people, controls);
       schedule.value = inspectPathIndex.value;
       // 巡检速度不断更新
