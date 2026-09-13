@@ -129,11 +129,10 @@ onMounted(async () => {
   threejs.value.appendChild(renderer.domElement);
   threejs.value.appendChild(css2DRender.domElement);
   const rgbeLoader = new RGBELoader();
-  // 环境贴图
-  let envMap = await rgbeLoader.loadAsync("./envMap.hdr");
-  createEnvironment(envMap);
-  // 异步加载污水厂模型
-  sewageModel = await addSewageModel(envMap);
+  // Start HDR in parallel so slow CDN delivery cannot block plant geometry.
+  const envMapPromise = rgbeLoader.loadAsync("./envMap.hdr").catch(() => null);
+  // Load the plant immediately; environment lighting is attached after first render.
+  sewageModel = await addSewageModel(null);
   modelCapabilities = sewageModel.userData.modelCapabilities;
   // 添加人物模型、人物动画播放器
   const { peopleGroup, mixer } = await addPeopleModel();
@@ -144,14 +143,25 @@ onMounted(async () => {
   // 允许人物模型产生阴影
   people.castShadow = true;
   scene.add(sewageModel, people, inspectLinePointGroup);
-  // 创建水面
-  if (supportsModelFeature(modelCapabilities, "water")) createWaterPlane(sewageModel, envMap);
   // 设置水池材质
   if (supportsModelFeature(modelCapabilities, "poolMaterial")) setPoolMaterial(sewageModel);
-  // 开始循环渲染
+  // Start rendering before waiting for the optional HDR environment.
   render();
-  // 播放首次进入动画
   eventAnimation();
+
+  const envMap = await envMapPromise;
+  if (envMap) {
+    createEnvironment(envMap);
+    sewageModel.traverse((obj) => {
+      if (!obj.name.includes("玻璃") || !obj.material) return;
+      const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
+      materials.forEach((material) => {
+        material.envMap = envMap;
+        material.needsUpdate = true;
+      });
+    });
+    if (supportsModelFeature(modelCapabilities, "water")) createWaterPlane(sewageModel, envMap);
+  }
 });
 
 watch(
