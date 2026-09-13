@@ -76,6 +76,8 @@ npm run build
 
 Upstream source 在 `src/view/threejs/addSewageModel/index.js` 中保留了作者原始地址 `http://211.143.122.110:18062/model/sewage.glb`。2026-09-12 已分别从本地 Windows 与 GitHub Actions Ubuntu runner 进行 HTTP/HTTPS、Range 及多个路径变体探测；目标 `211.143.122.110:18062` 均在 TCP connect 阶段超时，因此当前无法从该链接恢复模型字节。
 
+当原始模型不可用时，本 fork 可使用 **AL AMERAT STP 03FEB2018** 作为 fallback replacement。该模型由 `moh.mag.omar` 发布，采用 **CC BY 4.0**；来源与完整 attribution 记录在 `public/AL_AMERAT_STP_ATTRIBUTION.txt`。它不是 upstream 原始模型，因此运行时会自动关闭依赖原始中文节点名称的水面、围栏、植被、工艺动画和巡检功能，只保留安全的基础 3D 渲染。后续若获得原始 `sewageModel.glb`，重新上传同名 release asset 后即可自动恢复 semantic/full-feature mode。
+
 若获得合法的原始模型，可上传并重新部署：
 
 ```bash

@@ -7,8 +7,24 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { addFence } from '../addFence/index.js';
 // 添加树模型函数
 import { addPlant } from "../addPlant/index.js";
+import { detectModelCapabilities, supportsModelFeature } from "../modelCapabilities.js";
 
 
+
+function fitGenericModel(root) {
+    const box = new THREE.Box3().setFromObject(root);
+    if (box.isEmpty()) return;
+    const size = box.getSize(new THREE.Vector3());
+    const maxDimension = Math.max(size.x, size.y, size.z);
+    if (maxDimension > 0) root.scale.multiplyScalar(160 / maxDimension);
+    root.updateMatrixWorld(true);
+    const fittedBox = new THREE.Box3().setFromObject(root);
+    const center = fittedBox.getCenter(new THREE.Vector3());
+    root.position.x -= center.x;
+    root.position.z -= center.z;
+    root.position.y -= fittedBox.min.y;
+    root.updateMatrixWorld(true);
+}
 
 // 添加污水厂模型函数
 async function addSewageModel (envMap) {
@@ -64,11 +80,14 @@ async function addSewageModel (envMap) {
                     obj.receiveShadow = true;
                 }
             })
+            const capabilities = detectModelCapabilities(gltf.scenes[0]);
+            model.userData.modelCapabilities = capabilities;
+            if (capabilities.kind === 'generic') fitGenericModel(gltf.scenes[0]);
             model.add(gltf.scenes[0]);
             // 添加围栏
-            addFence(gltf.scenes[0]);
+            if (supportsModelFeature(capabilities, 'fence')) addFence(gltf.scenes[0]);
             // 添加树模型
-            addPlant(gltf.scenes[0]);
+            if (supportsModelFeature(capabilities, 'plants')) addPlant(gltf.scenes[0]);
 
 
             // 延迟几秒再隐藏进度条

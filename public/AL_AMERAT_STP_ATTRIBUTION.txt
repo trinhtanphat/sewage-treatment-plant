@@ -1,0 +1,14 @@
+AL AMERAT STP 03FEB2018
+Author: moh.mag.omar
+Source: Sketchfab model 05a5be48805b414bb86bde27bc9eca1c
+License: CC-BY-4.0 (Creative Commons Attribution 4.0 International)
+
+This model is used only as a fallback replacement when the original
+sewage-treatment-plant semantic model is unavailable. It is not the
+original upstream sewageModel.glb.
+
+Sketchfab source:
+https://sketchfab.com/3d-models/al-amerat-stp-03feb2018-05a5be48805b414bb86bde27bc9eca1c
+
+License text:
+https://creativecommons.org/licenses/by/4.0/
